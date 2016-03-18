@@ -1,0 +1,19 @@
+apply plugin: 'java'
+apply plugin: 'osgi'
+
+dependencies {
+    compile project(':modules:skyshard-engine-core:skyshard-engine-core-api')
+
+    compile 'org.slf4j:slf4j-api:1.7.16'
+
+    runtime 'org.apache.felix:org.apache.felix.scr:2.0.2'
+    runtime 'org.apache.felix:org.apache.felix.eventadmin:1.4.6'
+    runtime 'org.apache.felix:org.apache.felix.configadmin:1.8.8'
+}
+
+jar {
+    manifest {
+        instruction 'Service-Component', 'OSGI-INF/*.xml'
+        instruction "Private-Package", "org.jayware.fact.core.impl.*"
+    }
+}

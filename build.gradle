@@ -1,0 +1,19 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'org.jayware:gradle-osgi-ds:0.3.0'
+    }
+}
+
+plugins {
+    id 'com.github.hierynomus.license' version '0.12.1'
+    id 'de.undercouch.download' version '2.1.0'
+    id 'com.jfrog.bintray' version '1.5'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.12'
+}

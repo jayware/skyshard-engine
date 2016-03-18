@@ -1,0 +1,17 @@
+env:
+  global:
+    # COVERALLS_REPO_TOKEN
+    secure: sx2zVgWsep/+FXghPpqCTEsMhf4iZKWLvZfc6q/RLC/GOBnDuOLCYWm/lyJfUZmATrhmzQuwmEYbwKaG9q8gl6RKOQfG43AVD6CzwhOfurvcuyzvBz/kKNW9BMMVeFCZhPW4cvmmv3Btg6Ny0efLGvdNIK3uI0CcqgdGvhbo8CaHAHXEzhAV5FG/BL7bqAI+i4lz6bSYnHrV72Cy8IGi9Pdm2UKRu+uPLO/9ze4FI5DZMVduZN4GYg10qEm9Nj4h/dQjpbg6+XHWBPiI1FelVW1q2JHGpmfJ1nnT/54QOKps+DmdCOXmRjig5OjE6dPnywm1gyOxEt9kkZQ2Nl8x6vauNUva0R4Ot5yEDEi09qX+GubyU0JR2FGjV2BljXU1kJx5EjtnemQTBwnUA0GIYTWePQ5/PJBD7c3QyJrjnmu6bieuxSOfNHUktT+X1N8MagCHhykC15bYXsZFuh2pXxcIJdc9so2cesR2rfVF0kcuiTQF+s+DlrKyHCxbzuVnqqpDiKjWtWloq+OeQBK+wCEEeROUH/1uyzjQyzDIAX/iNTY70jWGJLZ2BKL/y64CFxDN8FYpXvf/mZVsCrPW5uBlM8nKdyMSocLWyTNtVy8Snt7k0adLh5/JzpJVq49l0463oOTWk7JLISdvpXglam9V5dtN5AFOpOkGxNKLAuQ=
+
+language: java
+
+jdk:
+  - oraclejdk8
+
+branches:
+  only:
+  - master
+  - development
+
+after_success:
+  - ./gradlew coveralls

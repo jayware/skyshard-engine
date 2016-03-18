@@ -1,0 +1,209 @@
+
+subprojects {
+
+    group = 'org.jayware.skyshard'
+
+    plugins.withType(JavaPlugin) {
+        project.apply plugin: 'maven'
+        project.apply plugin: 'maven-publish'
+        project.apply plugin: 'com.jfrog.bintray'
+        project.apply plugin: 'findbugs'
+        project.apply plugin: 'license'
+
+        repositories {
+            mavenCentral()
+            jcenter()
+        }
+
+        dependencies {
+            testCompile "org.testng:testng:6.9.10"
+            testCompile "org.assertj:assertj-core:3.3.0"
+            testCompile "org.mockito:mockito-core:1.10.19"
+            testCompile "ch.qos.logback:logback-classic:1.1.6"
+        }
+
+        test {
+            useTestNG() {}
+        }
+
+        findbugs {
+            toolVersion = '3.0.1'
+            sourceSets = [sourceSets.main]
+        }
+
+        license {
+            header rootProject.file('HEADER.txt')
+            ext.year = Calendar.getInstance().get(Calendar.YEAR)
+            skipExistingHeaders = true
+            include '**/*.java'
+        }
+
+        task coveralls(type:Exec, dependsOn: 'generateCoverallsPom') {
+            commandLine 'mvn', 'clean', 'install', 'test', 'jacoco:report', 'coveralls:report'
+        }
+
+        task generateCoverallsPom << {
+            pom {
+                project {
+                    groupId project.group
+                    artifactId project.name
+                    version project.version
+                }
+                withXml {
+                    def root = asNode()
+                    def properties = root.appendNode('properties')
+                    properties.appendNode('project.build.sourceEncoding', 'UTF-8')
+                    def build = root.appendNode('build')
+                    def plugins = build.appendNode('plugins')
+                    def jacoco = plugins.appendNode('plugin')
+                    jacoco.appendNode('groupId', 'org.jacoco')
+                    jacoco.appendNode('artifactId', 'jacoco-maven-plugin')
+                    jacoco.appendNode('version', '0.7.6.201602180812')
+                    def executions = jacoco.appendNode('executions')
+                    def execution = executions.appendNode('execution')
+                    execution.appendNode('id', 'prepare-agent')
+                    def goals = execution.appendNode('goals')
+                    goals.appendNode('goal', 'prepare-agent')
+                    def coveralls = plugins.appendNode('plugin')
+                    coveralls.appendNode('groupId', 'org.eluder.coveralls')
+                    coveralls.appendNode('artifactId', 'coveralls-maven-plugin')
+                    coveralls.appendNode('version', '4.1.0')
+                    def configuration = coveralls.appendNode('configuration')
+                    configuration.appendNode('repoToken', '${env.COVERALLS_REPO_TOKEN}')
+                    def javac = plugins.appendNode('plugin')
+                    javac.appendNode('groupId', 'org.apache.maven.plugins')
+                    javac.appendNode('artifactId', 'maven-compiler-plugin')
+                    javac.appendNode('version', '3.5.1')
+                    configuration = javac.appendNode('configuration')
+                    configuration.appendNode('source', '1.8')
+                    configuration.appendNode('target', '1.8')
+                    def dependencies = root.getAt('dependencies')[0]
+                    project.configurations.compileOnly.resolvedConfiguration.getResolvedArtifacts().each { artifact ->
+                        def dependency = dependencies.appendNode('dependency')
+                        dependency.appendNode('groupId', artifact.moduleVersion.id.group)
+                        dependency.appendNode('artifactId', artifact.moduleVersion.id.name)
+                        dependency.appendNode('version', artifact.moduleVersion.id.version)
+                        dependency.appendNode('scope', 'provided')
+                    }
+                }
+            }.writeTo('pom.xml')
+        }
+
+        clean{
+            delete 'pom.xml'
+        }
+
+        task sourcesJar(type: Jar, dependsOn: classes) {
+            classifier = 'sources'
+            from sourceSets.main.allSource
+        }
+
+        task javadocJar(type: Jar, dependsOn: javadoc) {
+            classifier = 'javadoc'
+            from javadoc.destinationDir
+        }
+
+        artifacts {
+            archives sourcesJar
+            archives javadocJar
+        }
+    }
+
+    plugins.withType(OsgiPlugin) {
+
+        project.apply plugin: 'osgi-ds'
+
+        dependencies {
+            compile 'org.osgi:osgi.core:6.0.0'
+            compileOnly 'org.osgi:org.osgi.service.component.annotations:1.3.0'
+
+            testCompile 'javax:javaee-api:7.0'
+            testCompile 'org.ops4j.pax.exam:pax-exam:4.8.0'
+            testCompile 'org.ops4j.pax.exam:pax-exam-testng:4.8.0'
+            testCompile 'org.ops4j.pax.tinybundles:tinybundles:2.1.1'
+
+            testRuntime 'org.ops4j.pax.exam:pax-exam-container-native:4.8.0'
+            testRuntime 'org.ops4j.pax.exam:pax-exam-link-assembly:4.8.0'
+            testCompile 'org.ops4j.pax.exam:pax-exam-link-mvn:4.8.0'
+            testRuntime 'org.apache.felix:org.apache.felix.framework:5.4.0'
+        }
+
+        jar {
+            from (rootProject.projectDir) {
+                include "LICENSE.txt"
+            }
+            from (projectDir) {
+                include 'README.md', 'RELEASES.md'
+            }
+            from (rootProject.projectDir) {
+                include 'RELEASES.md'
+                into "META-INF/maven/${project.group}/${project.name.replace('-', '.')}"
+            }
+            manifest {
+                vendor 'jayware.org'
+                name "${project.group}:${project.name}"
+                description "${project.description}"
+                symbolicName "${project.group}.${project.name.replace('-', '.')}"
+                license "${project.licenseUrl}"
+                instruction 'Bundle-Category', "${project.bundleCategory}"
+                instruction 'Bundle-RequiredExecutionEnvironment', 'JavaSE-1.8'
+            }
+        }
+    }
+
+    plugins.withType(MavenPublishPlugin) {
+        publishing {
+            publications {
+                "${project.name}"(MavenPublication) {
+                    from components.java
+                    artifact sourcesJar
+                    artifact javadocJar
+                    groupId project.group
+                    artifactId project.name
+                    version project.version
+                    pom.withXml {
+                        def root = asNode()
+                        root.appendNode('name', "${project.group}:${project.name}")
+                        root.appendNode('description', project.description)
+                        root.appendNode('url', 'http://jayware.github.io/skyshard-engine/')
+                        root.appendNode('inceptionYear', '2016')
+                        def scm = root.appendNode('scm')
+                        scm.appendNode('url', project.website)
+                        scm.appendNode('connection', project.vcsUrl)
+                        scm.appendNode('developerConnection', project.vcsUrl)
+                        def developers = root.appendNode('developers')
+                        def dev = developers.appendNode('developer')
+                        dev.appendNode('name', 'Elmar Schug')
+                        dev.appendNode('email', 'elmar.schug@jayware.org')
+                        dev.appendNode('organization', 'JayWare')
+                        dev.appendNode('organizationUrl', 'https://jayware.org')
+                        dev = developers.appendNode('developer')
+                        dev.appendNode('name', 'Markus Neubauer')
+                        dev.appendNode('email', 'markus.neubauer@jayware.org')
+                        dev.appendNode('organization', 'JayWare')
+                        dev.appendNode('organizationUrl', 'https://jayware.org')
+                        dev = developers.appendNode('developer')
+                        dev.appendNode('name', 'Alexander Haumann')
+                        dev.appendNode('email', 'alexander.haumann@jayware.org')
+                        dev.appendNode('organization', 'JayWare')
+                        dev.appendNode('organizationUrl', 'https://jayware.org')
+                        dev = developers.appendNode('developer')
+                        dev.appendNode('name', 'Marina Schilling')
+                        dev.appendNode('email', 'marina.schilling@jayware.org')
+                        dev.appendNode('organization', 'JayWare')
+                        dev.appendNode('organizationUrl', 'https://jayware.org')
+                        dev = developers.appendNode('developer')
+                        dev.appendNode('name', 'Manuel Hinke')
+                        dev.appendNode('email', 'manuel.hinke@jayware.org')
+                        dev.appendNode('organization', 'JayWare')
+                        dev.appendNode('organizationUrl', 'https://jayware.org')
+                        def license = root.appendNode('licenses').appendNode('license')
+                        license.appendNode('name', project.licenseName)
+                        license.appendNode('url', project.licenseUrl)
+                        license.appendNode('distribution', 'repo')
+                    }
+                }
+            }
+        }
+    }
+}
