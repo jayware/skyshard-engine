@@ -2,6 +2,9 @@
 include 'modules'
 
 // Core Module
-include ':modules:skyshard-engine-core'
-include ':modules:skyshard-engine-core:skyshard-engine-core-api'
-include ':modules:skyshard-engine-core:skyshard-engine-core-impl'
+include ':modules:skyshard-engine-core-api'
+include ':modules:skyshard-engine-core-impl'
+
+// Graphics Module
+include ':modules:skyshard-engine-graphics-api'
+include ':modules:skyshard-engine-graphics-impl'

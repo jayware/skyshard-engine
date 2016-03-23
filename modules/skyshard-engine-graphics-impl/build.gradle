@@ -1,0 +1,16 @@
+apply plugin: 'java'
+apply plugin: 'osgi'
+
+dependencies {
+    compile parent.project('skyshard-engine-core-api')
+    compile parent.project('skyshard-engine-graphics-api')
+
+    compile 'org.slf4j:slf4j-api:1.7.16'
+}
+
+jar {
+    manifest {
+        instruction 'Service-Component', 'OSGI-INF/*.xml'
+        instruction "Private-Package", "org.jayware.skyshard.engine.core.impl.*"
+    }
+}
