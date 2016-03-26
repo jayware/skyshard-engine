@@ -8,3 +8,6 @@ include ':modules:skyshard-engine-core-impl'
 // Graphics Module
 include ':modules:skyshard-engine-graphics-api'
 include ':modules:skyshard-engine-graphics-impl'
+
+// LWJGL Fragment
+include ':modules:skyshard-engine-lwjgl'

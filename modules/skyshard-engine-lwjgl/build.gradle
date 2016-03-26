@@ -1,0 +1,46 @@
+apply plugin: 'java'
+apply plugin: 'osgi'
+
+configurations.create('included')
+
+dependencies {
+    compile "org.lwjgl:lwjgl:${lwjglVersion}"
+    compile "org.lwjgl:lwjgl-platform:${lwjglVersion}:natives-windows"
+    compile "org.lwjgl:lwjgl-platform:${lwjglVersion}:natives-linux"
+    compile "org.lwjgl:lwjgl-platform:${lwjglVersion}:natives-osx"
+
+    included "org.lwjgl:lwjgl:${lwjglVersion}"
+    included "org.lwjgl:lwjgl-platform:${lwjglVersion}:natives-windows"
+    included "org.lwjgl:lwjgl-platform:${lwjglVersion}:natives-linux"
+    included "org.lwjgl:lwjgl-platform:${lwjglVersion}:natives-osx"
+}
+
+jar {
+    manifest {
+        instruction 'Bundle-Activator', 'org.jayware.skyshard.lwjgl.Activator'
+        instruction 'Private-Package', 'org.jayware.skyshard.lwjgl.*'
+        attributes 'Export-Package': [
+                'org.lwjgl',
+                'org.lwjgl.egl',
+                'org.lwjgl.glfw',
+                'org.lwjgl.openal',
+                'org.lwjgl.opencl',
+                'org.lwjgl.opengl',
+                'org.lwjgl.opengles',
+                'org.lwjgl.ovr',
+                'org.lwjgl.stb',
+                'org.lwjgl.system',
+                'org.lwjgl.system.jemalloc',
+                'org.lwjgl.system.libc',
+                'org.lwjgl.system.libffi',
+                'org.lwjgl.system.linux',
+                'org.lwjgl.system.macosx',
+                'org.lwjgl.system.simd',
+                'org.lwjgl.system.windows',
+                'org.lwjgl.system.xxhash'
+        ].join(',')
+    }
+    from {
+        configurations.included.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}

@@ -22,14 +22,21 @@
  *     You should have received a copy of the GNU Lesser General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jayware.skyshard.engine.graphics.impl;
+package org.jayware.skyshard.graphics.impl;
 
 
-import org.jayware.skyshard.graphics.api.GraphicsContextService;
+import org.testng.annotations.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 
-public class GraphicsContextServiceImpl
-implements GraphicsContextService
+public class GraphicsContextServiceImplTest
 {
+    GraphicsContextServiceImpl testee = new GraphicsContextServiceImpl();
 
+    @Test
+    public void testActivate() {
+
+        testee.activate();
+    }
 }
