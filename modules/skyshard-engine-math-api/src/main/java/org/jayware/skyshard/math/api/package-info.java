@@ -22,38 +22,7 @@
  *     You should have received a copy of the GNU Lesser General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jayware.skyshard.graphics.impl;
-
-
-import org.mockito.Mock;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
-
-
-public class GraphicsContextServiceImplTest
-{
-    private GraphicsContextServiceImpl testee = new GraphicsContextServiceImpl();
-
-    private @Mock BundleContext bundleContext;
-    private @Mock Bundle systemBundle;
-
-    @BeforeMethod
-    public void setUp()
-    throws Exception
-    {
-        initMocks(this);
-
-        when(bundleContext.getBundle(0)).thenReturn(systemBundle);
-    }
-
-    @Test
-    public void testActivate()
-    {
-        testee.activate(bundleContext);
-    }
-}
+/**
+ * This package provides classes and interfaces for mathematics.
+ */
+package org.jayware.skyshard.math.api;

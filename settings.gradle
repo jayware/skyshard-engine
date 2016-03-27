@@ -11,3 +11,6 @@ include ':modules:skyshard-engine-graphics-impl'
 
 // LWJGL Fragment
 include ':modules:skyshard-engine-lwjgl'
+
+// Math Module
+include ':modules:skyshard-engine-math-api'
