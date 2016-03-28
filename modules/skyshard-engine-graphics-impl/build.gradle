@@ -6,7 +6,7 @@ dependencies {
     compile parent.project('skyshard-engine-graphics-api')
     compile parent.project('skyshard-engine-lwjgl')
 
-    compile 'org.slf4j:slf4j-api:1.7.18'
+    compile 'org.slf4j:slf4j-api:1.7.19'
 }
 
 jar {

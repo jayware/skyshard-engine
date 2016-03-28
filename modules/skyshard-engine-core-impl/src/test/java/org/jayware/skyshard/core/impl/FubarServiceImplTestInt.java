@@ -52,7 +52,7 @@ public class FubarServiceImplTestInt
         return options(
             systemPackages("org.assertj.core.api"),
             mavenBundle("org.apache.felix", "org.apache.felix.scr", "2.0.2"),
-            mavenBundle("org.slf4j", "slf4j-api", "1.7.18"),
+            mavenBundle("org.slf4j", "slf4j-api", "1.7.19"),
             mavenBundle("ch.qos.logback", "logback-core", "1.1.6"),
             mavenBundle("ch.qos.logback", "logback-classic", "1.1.6"),
             provision(bundle()
