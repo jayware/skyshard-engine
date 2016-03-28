@@ -27,13 +27,13 @@ package org.jayware.skyshard.math.api;
 /**
  * A single precision floating point 4 by 4 matrix.
  * <br><br>
- * The elements of a matrix are indexed (italic) as below:
  * <table border="1" >
  *  <tr><td><b>&nbsp;</b></td><td><b>0</b></td><td><b>1</b></td><td><b>2</b></td><td><b>3</b></td></tr>
  *  <tr><td><b>0</b></td><td><i>0</i></td><td><i>1</i></td><td><i>2</i></td><td><i>3</i></td></tr>
  *  <tr><td><b>1</b></td><td><i>4</i></td><td><i>5</i></td><td><i>6</i></td><td><i>7</i></td></tr>
  *  <tr><td><b>2</b></td><td><i>8</i></td><td><i>9</i></td><td><i>10</i></td><td><i>11</i></td></tr>
  *  <tr><td><b>3</b></td><td><i>12</i></td><td><i>13</i></td><td><i>14</i></td><td><i>15</i></td></tr>
+ *  <caption>Indices of the elements of a matrix (italic)</caption>
  * </table><br>
  * If the row and column (bold, above) number is passed,
  * the index is calculated with: index = 4 * row + column
