@@ -35,8 +35,8 @@
                     </a>
                 </td>
                 <td align="center">
-                    <a href="https://www.versioneye.com/user/projects/56ee65c235630e0029dafb5d?child=summary">
-                        <img src="https://www.versioneye.com/user/projects/56ee65c235630e0029dafb5d/badge.svg?style=flat" alt="Dependency Status" />
+                    <a href="https://www.versioneye.com/user/projects/57012ff6fcd19a0039f155f4?child=summary">
+                        <img src="https://www.versioneye.com/user/projects/57012ff6fcd19a0039f155f4/badge.svg?style=flat" alt="Dependency Status" />
                     </a>
                 </td>
             </tr>
