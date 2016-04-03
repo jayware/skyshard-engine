@@ -51,6 +51,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
@@ -59,11 +60,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static java.lang.Integer.valueOf;
 import static java.lang.Runtime.getRuntime;
 import static java.lang.Thread.currentThread;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.regex.Pattern.compile;
 import static org.osgi.framework.FrameworkEvent.STOPPED_UPDATE;
 
 
@@ -126,12 +130,15 @@ public class Main
         final Properties properties = new Properties();
 
         loadDefaultConfiguration(properties);
+        loadSystemConfiguration(properties);
         loadExternalConfiguration(properties);
 
         for (Map.Entry<Object, Object> entry : properties.entrySet())
         {
             result.put((String) entry.getKey(), (String) entry.getValue());
         }
+
+        resolveConfiguration(result);
 
         return result;
     }
@@ -145,6 +152,14 @@ public class Main
         catch (Exception e)
         {
             e.printStackTrace(System.err);
+        }
+    }
+
+    static void loadSystemConfiguration(Properties properties)
+    {
+        for (Map.Entry<Object, Object> entry : System.getProperties().entrySet())
+        {
+            properties.put(entry.getKey(), entry.getValue());
         }
     }
 
@@ -165,6 +180,64 @@ public class Main
                 {
                     e.printStackTrace(System.err);
                 }
+            }
+        }
+    }
+
+    static void resolveConfiguration(Map<String, String> configuration)
+    {
+        final Pattern pattern = compile("\\$\\{[\\w|\\.|-]*\\}");
+        final Set<Map.Entry<String, String>> properties = configuration.entrySet();
+        final Matcher matcher = pattern.matcher("");
+
+        for (Map.Entry<String, String> entry : properties)
+        {
+            try
+            {
+                final String key = entry.getKey();
+                final String value = entry.getValue();
+                final StringBuilder builder = new StringBuilder();
+
+                boolean replaceProperty = false;
+                int lastStart = 0, lastEnd = 0;
+
+                matcher.reset(value);
+                while (matcher.find())
+                {
+                    final String resolve = matcher.group().substring(2, matcher.group().length() - 1);
+                    final String replacement = configuration.get(resolve);
+                    final int start = matcher.start();
+
+                    if (replacement == null)
+                    {
+                        throw new RuntimeException("Missing property: " + resolve);
+                    }
+
+                    if (start - lastStart > 0)
+                    {
+                        builder.append(value.substring(lastStart, start));
+                    }
+
+                    builder.append(replacement);
+
+                    lastStart = start;
+                    lastEnd = matcher.end();
+                    replaceProperty = true;
+                }
+
+                if (lastEnd < value.length())
+                {
+                    builder.append(value.substring(lastEnd, value.length()));
+                }
+
+                if (replaceProperty)
+                {
+                    configuration.put(key, builder.toString());
+                }
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace(System.err);
             }
         }
     }
