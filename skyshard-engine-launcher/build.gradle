@@ -1,0 +1,119 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'findbugs'
+apply plugin: 'license'
+
+group = 'org.jayware.skyshard'
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+    compileOnly 'org.osgi:osgi.core:6.0.0'
+
+    testCompile 'org.testng:testng:6.9.10'
+    testCompile 'org.assertj:assertj-core:3.3.0'
+    testCompile 'org.mockito:mockito-core:1.10.19'
+
+    testRuntime 'org.apache.felix:org.apache.felix.framework:5.4.0'
+    testRuntime 'ch.qos.logback:logback-classic:1.1.6'
+}
+
+test {
+    useTestNG() {}
+}
+
+findbugs {
+    toolVersion = '3.0.1'
+    sourceSets = [sourceSets.main]
+}
+
+license {
+    header rootProject.file('HEADER.txt')
+    ext.year = Calendar.getInstance().get(Calendar.YEAR)
+    skipExistingHeaders = true
+    include '**/*.java'
+}
+
+jar {
+    manifest.attributes ([
+        'Main-Class': mainClass,
+        'Implementation-Title': project.name,
+        'Implementation-Version': version
+    ])
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+plugins.withType(MavenPublishPlugin) {
+    publishing {
+        publications {
+            "${project.name}"(MavenPublication) {
+                from components.java
+                artifact sourcesJar
+                artifact javadocJar
+                groupId project.group
+                artifactId project.name
+                version project.version
+                pom.withXml {
+                    def root = asNode()
+                    root.appendNode('name', "${project.group}:${project.name}")
+                    root.appendNode('description', project.description)
+                    root.appendNode('url', 'http://jayware.github.io/skyshard-engine/')
+                    root.appendNode('inceptionYear', '2016')
+                    def scm = root.appendNode('scm')
+                    scm.appendNode('url', project.website)
+                    scm.appendNode('connection', project.vcsUrl)
+                    scm.appendNode('developerConnection', project.vcsUrl)
+                    def developers = root.appendNode('developers')
+                    def dev = developers.appendNode('developer')
+                    dev.appendNode('name', 'Elmar Schug')
+                    dev.appendNode('email', 'elmar.schug@jayware.org')
+                    dev.appendNode('organization', 'JayWare')
+                    dev.appendNode('organizationUrl', 'https://jayware.org')
+                    dev = developers.appendNode('developer')
+                    dev.appendNode('name', 'Markus Neubauer')
+                    dev.appendNode('email', 'markus.neubauer@jayware.org')
+                    dev.appendNode('organization', 'JayWare')
+                    dev.appendNode('organizationUrl', 'https://jayware.org')
+                    dev = developers.appendNode('developer')
+                    dev.appendNode('name', 'Alexander Haumann')
+                    dev.appendNode('email', 'alexander.haumann@jayware.org')
+                    dev.appendNode('organization', 'JayWare')
+                    dev.appendNode('organizationUrl', 'https://jayware.org')
+                    dev = developers.appendNode('developer')
+                    dev.appendNode('name', 'Marina Schilling')
+                    dev.appendNode('email', 'marina.schilling@jayware.org')
+                    dev.appendNode('organization', 'JayWare')
+                    dev.appendNode('organizationUrl', 'https://jayware.org')
+                    dev = developers.appendNode('developer')
+                    dev.appendNode('name', 'Manuel Hinke')
+                    dev.appendNode('email', 'manuel.hinke@jayware.org')
+                    dev.appendNode('organization', 'JayWare')
+                    dev.appendNode('organizationUrl', 'https://jayware.org')
+                    def license = root.appendNode('licenses').appendNode('license')
+                    license.appendNode('name', project.licenseName)
+                    license.appendNode('url', project.licenseUrl)
+                    license.appendNode('distribution', 'repo')
+                }
+            }
+        }
+    }
+}

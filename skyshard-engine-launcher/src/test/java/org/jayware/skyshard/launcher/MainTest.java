@@ -22,36 +22,14 @@
  *     You should have received a copy of the GNU Lesser General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jayware.skyshard.graphics.impl;
+package org.jayware.skyshard.launcher;
 
 
-import org.mockito.Mock;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.testng.annotations.BeforeMethod;
-
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
-
-
-public class GraphicsContextServiceImplTest
+public class MainTest
 {
-    private GraphicsContextServiceImpl testee = new GraphicsContextServiceImpl();
-
-    private @Mock BundleContext bundleContext;
-    private @Mock Bundle systemBundle;
-
-    @BeforeMethod
-    public void setUp()
+    public void testMain()
     throws Exception
     {
-        initMocks(this);
-
-        when(bundleContext.getBundle(0)).thenReturn(systemBundle);
-    }
-
-    public void testActivate()
-    {
-        testee.activate(bundleContext);
+        Main.main(new String[0]);
     }
 }

@@ -1,4 +1,7 @@
 
+// Launcher
+include 'skyshard-engine-launcher'
+
 include 'modules'
 
 // Core Module
@@ -14,3 +17,6 @@ include ':modules:skyshard-engine-lwjgl'
 
 // Math Module
 include ':modules:skyshard-engine-math-api'
+
+// Util Module
+include ':modules:skyshard-engine-util'

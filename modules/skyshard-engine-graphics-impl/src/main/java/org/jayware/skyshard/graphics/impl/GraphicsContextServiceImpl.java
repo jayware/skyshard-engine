@@ -39,6 +39,8 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -52,6 +54,7 @@ import java.nio.IntBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
+import java.util.concurrent.Executor;
 
 import static java.lang.Math.tan;
 import static java.lang.Math.toRadians;
@@ -122,17 +125,21 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 import static org.lwjgl.system.MemoryUtil.memEncodeUTF8;
 
 
-@Component(service = GraphicsContextService.class, immediate = true)
+@Component(
+    service = GraphicsContextService.class,
+    immediate = true,
+    reference = {
+        @Reference()
+    }
+)
 public class GraphicsContextServiceImpl
 implements GraphicsContextService
 {
-    // We need to strongly reference callback instances.
     private GLFWErrorCallback errorCallback;
     private GLFWKeyCallback   keyCallback;
     private GLFWWindowSizeCallback wsCallback;
     private Closure debugProc;
 
-    // The window handle
     private long window;
     private int width, height;
 
@@ -141,34 +148,48 @@ implements GraphicsContextService
     private int viewMatrixUniform;
     private int modelMatrixUniform;
 
+    private Executor myMainExecutor;
+
+    public GraphicsContextServiceImpl()
+    {
+        System.out.println();
+    }
+
     @Activate
     void activate(BundleContext context)
     {
-        try
-        {
-            init();
-            loop();
-
-            // Release window and window callbacks
-            glfwDestroyWindow(window);
-            keyCallback.release();
-            wsCallback.release();
-            if (debugProc != null)
+        myMainExecutor.execute(() -> {
+            try
             {
-                debugProc.release();
-            }
+                init();
+                loop();
 
-            context.getBundle(0).stop();
-        }
-        catch (BundleException e)
-        {
-        }
-        finally
-        {
-            // Terminate GLFW and release the GLFWerrorfun
-            glfwTerminate();
-            errorCallback.release();
-        }
+                // Release window and window callbacks
+                glfwDestroyWindow(window);
+                keyCallback.release();
+                wsCallback.release();
+                if (debugProc != null)
+                {
+                    debugProc.release();
+                }
+
+                context.getBundle(0).stop();
+            }
+            catch (BundleException e)
+            {
+            }
+            finally
+            {
+                // Terminate GLFW and release the GLFWerrorfun
+                glfwTerminate();
+                errorCallback.release();
+            }
+        });
+    }
+
+    @Deactivate
+    protected void deactivate() {
+
     }
 
     private void init() {
@@ -177,8 +198,9 @@ implements GraphicsContextService
         glfwSetErrorCallback(errorCallback = GLFWErrorCallback.createPrint(System.err));
 
         // Initialize GLFW. Most GLFW functions will not work before doing this.
-        if ( glfwInit() != GL11.GL_TRUE )
+        if ( glfwInit() != GL11.GL_TRUE ) {
             throw new IllegalStateException("Unable to initialize GLFW");
+        }
 
         // Configure our window
         glfwDefaultWindowHints(); // optional, the current window hints are already the default
@@ -218,6 +240,7 @@ implements GraphicsContextService
 
         // Make the OpenGL context current
         glfwMakeContextCurrent(window);
+
         // Enable v-sync
         glfwSwapInterval(1);
 
@@ -478,8 +501,18 @@ implements GraphicsContextService
         result[10] = (float) (farDist * oneOverDepth);
         result[14] = (float) (-farDist * nearDist * oneOverDepth);
         result[11] = 1;
-        result[15] = 0;
 
         return result;
+    }
+
+    @Reference(target = "(executor.name=main)")
+    public void bindMainExecutor(Executor executor)
+    {
+        myMainExecutor = executor;
+    }
+
+    public void unbindMainExecutor(Executor executor)
+    {
+        myMainExecutor = null;
     }
 }
