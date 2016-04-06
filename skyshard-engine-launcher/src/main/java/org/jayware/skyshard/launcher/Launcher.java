@@ -55,6 +55,7 @@ import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Condition;
@@ -71,39 +72,42 @@ import static java.util.regex.Pattern.compile;
 import static org.osgi.framework.FrameworkEvent.STOPPED_UPDATE;
 
 
-public class Main
+public class Launcher
 {
-    public static final String FRAMEWORK_FACTORY_CLASS_PATH = "META-INF/services/org.osgi.framework.launch.FrameworkFactory";
-
     public static final String LAUNCHER_CONFIGURATION_CLASS_PATH = "/META-INF/launcher-default.properties";
 
-    public static final String LAUNCHER_AUTO_DEPLOY_PROPERTY = "launcher.auto.deploy.dir";
+    public static final String LAUNCHER_CONFIG_FILE_PROPERTY = "org.jayware.skyshard.launcher.config.file";
 
-    public static final String LAUNCHER_AUTO_STARTLEVEL_PROPERTY = "launcher.auto.deploy.startlevel";
+    public static final String LAUNCHER_FRAMEWORK_FACTORY_PROPERTY = "org.jayware.skyshard.launcher.framework-factory";
 
-    public static final String LAUNCHER_CONFIG_FILE_PROPERTY = "launcher.config.file";
+    public static final String LAUNCHER_THREAD_FACTORY_PROPERTY = "org.jayware.skyshard.launcher.thread-factory";
+
+    public static final String LAUNCHER_AUTO_DEPLOY_DIR_PROPERTY = "org.jayware.skyshard.launcher.auto.deploy.dir";
+
+    public static final String LAUNCHER_AUTO_DEPLOY_STARTLEVEL_PROPERTY = "org.jayware.skyshard.launcher.auto.deploy.startlevel";
 
     public static final String BUNDLE_STARTLEVEL_HEADER = "Bundle-Startlevel";
 
     public static void main(String[] args)
     throws Exception
     {
-        final FrameworkFactory frameworkFactory = getFrameworkFactory();
         final Map<String, String> configuration = loadConfiguration(args);
+        final ThreadFactory threadFactory = getThreadFactory(configuration);
+        final FrameworkFactory frameworkFactory = getFrameworkFactory(configuration);
         final Framework framework = frameworkFactory.newFramework(configuration);
         final MainThreadExecutionService service = new MainThreadExecutionService();
 
-        addShutdownHook(framework, service);
+        addShutdownHook(framework, service, getRuntime(), threadFactory);
         initializeFramework(framework);
         deployBundles(framework, configuration);
-        startFramework(framework);
+        startFramework(framework, getRuntime(), threadFactory);
         offerExecutionService(framework, service);
     }
 
-    static FrameworkFactory getFrameworkFactory() throws Exception
+    static FrameworkFactory getFrameworkFactory(Map<String, String> configuration) throws Exception
     {
-        final String resource = FRAMEWORK_FACTORY_CLASS_PATH;
-        final ClassLoader classLoader = Main.class.getClassLoader();
+        final String resource = configuration.get(LAUNCHER_FRAMEWORK_FACTORY_PROPERTY);
+        final ClassLoader classLoader = Launcher.class.getClassLoader();
         final URL url = classLoader.getResource(resource);
 
         if (url != null)
@@ -122,6 +126,38 @@ public class Main
         }
 
         throw new Exception("Could not find framework factory.");
+    }
+
+    static ThreadFactory getThreadFactory(Map<String, String> configuration)
+    {
+        final String threadFactoryClassName = configuration.get(LAUNCHER_THREAD_FACTORY_PROPERTY);
+        ThreadFactory threadFactory = null;
+
+        if (threadFactoryClassName != null)
+        {
+            try
+            {
+                threadFactory = (ThreadFactory) Class.forName(threadFactoryClassName).newInstance();
+            }
+            catch (ClassNotFoundException | InstantiationException | IllegalAccessException e)
+            {
+                e.printStackTrace(System.err);
+            }
+        }
+
+        if (threadFactory == null)
+        {
+            threadFactory = new ThreadFactory()
+            {
+                @Override
+                public Thread newThread(Runnable runnable)
+                {
+                    return new Thread(runnable);
+                }
+            };
+        }
+
+        return threadFactory;
     }
 
     static Map<String, String> loadConfiguration(String[] args)
@@ -145,7 +181,7 @@ public class Main
 
     static void loadDefaultConfiguration(Properties properties)
     {
-        try (final InputStream inputStream = Main.class.getResourceAsStream(LAUNCHER_CONFIGURATION_CLASS_PATH))
+        try (final InputStream inputStream = Launcher.class.getResourceAsStream(LAUNCHER_CONFIGURATION_CLASS_PATH))
         {
             properties.load(inputStream);
         }
@@ -242,25 +278,29 @@ public class Main
         }
     }
 
-    static void addShutdownHook(final Framework framework, MainThreadExecutionService service)
+    static void addShutdownHook(Framework framework, MainThreadExecutionService service, Runtime runtime, ThreadFactory threadFactory)
     {
-        getRuntime().addShutdownHook(new Thread(new Runnable()
-        {
-            @Override
-            public void run()
+        final Thread thread = threadFactory.newThread(
+            new Runnable()
             {
-                try
+                @Override
+                public void run()
                 {
-                    service.shutdown();
-                    framework.stop();
-                    framework.waitForStop(0);
-                }
-                catch (Exception e)
-                {
-                    e.printStackTrace(System.err);
+                    try
+                    {
+                        service.shutdown();
+                        framework.stop();
+                        framework.waitForStop(0);
+                    }
+                    catch (Exception e)
+                    {
+                        e.printStackTrace(System.err);
+                    }
                 }
             }
-        }, "framework-shutdown-hook"));
+        );
+        thread.setName("framework-shutdown-hook");
+        runtime.addShutdownHook(thread);
     }
 
     static void initializeFramework(Framework framework)
@@ -269,9 +309,9 @@ public class Main
         framework.init();
     }
 
-    static void startFramework(Framework framework)
+    static void startFramework(Framework framework, Runtime runtime, ThreadFactory threadFactory)
     {
-        new Thread(new Runnable()
+        final Thread frameworkLauncher = threadFactory.newThread(new Runnable()
         {
             @Override
             public void run()
@@ -286,15 +326,17 @@ public class Main
                     }
                     while (event.getType() == STOPPED_UPDATE);
 
-                    getRuntime().exit(0);
+                    runtime.exit(0);
                 }
                 catch (Exception e)
                 {
                     e.printStackTrace(System.err);
-                    getRuntime().exit(-1);
+                    runtime.exit(-1);
                 }
             }
-        }, "framework-launcher").start();
+        });
+        frameworkLauncher.setName("framework-launcher");
+        frameworkLauncher.start();
     }
 
     static void deployBundles(Framework framework, Map<String, String> configuration)
@@ -373,7 +415,7 @@ public class Main
 
     static List<URI> getAutoDeployBundleFiles(Map<String, String> configuration)
     {
-        final String autoDeployDir = configuration.get(LAUNCHER_AUTO_DEPLOY_PROPERTY);
+        final String autoDeployDir = configuration.get(LAUNCHER_AUTO_DEPLOY_DIR_PROPERTY);
         final File[] files = new File(autoDeployDir).listFiles();
         final List<URI> autoDeployBundleFiles = new ArrayList<>();
 
@@ -396,7 +438,7 @@ public class Main
         final Dictionary<String, String> headers = bundle.getHeaders();
         final String startLevelHeader = headers.get(BUNDLE_STARTLEVEL_HEADER);
 
-        return startLevelHeader != null ? valueOf(startLevelHeader) : valueOf(configuration.get(LAUNCHER_AUTO_STARTLEVEL_PROPERTY));
+        return startLevelHeader != null ? valueOf(startLevelHeader) : valueOf(configuration.get(LAUNCHER_AUTO_DEPLOY_STARTLEVEL_PROPERTY));
     }
 
     static void offerExecutionService(Framework framework, MainThreadExecutionService service)
