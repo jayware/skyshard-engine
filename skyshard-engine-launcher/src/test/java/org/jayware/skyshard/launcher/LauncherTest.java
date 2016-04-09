@@ -25,7 +25,6 @@
 package org.jayware.skyshard.launcher;
 
 
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.launch.Framework;
@@ -43,12 +42,11 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 import static org.jayware.skyshard.launcher.Launcher.LAUNCHER_CONFIGURATION_CLASS_PATH;
 import static org.jayware.skyshard.launcher.Launcher.LAUNCHER_CONFIG_FILE_PROPERTY;
 import static org.jayware.skyshard.launcher.Launcher.LAUNCHER_FRAMEWORK_FACTORY_PROPERTY;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -153,15 +151,9 @@ public class LauncherTest
         final FrameworkEvent stoppedUpdateEvent = mock(FrameworkEvent.class);
         final FrameworkEvent stopEvent = mock(FrameworkEvent.class);
 
-        when(threadFactory.newThread(any())).then(new Answer<Thread>()
-        {
-            @Override
-            public Thread answer(InvocationOnMock invocation)
-            throws Throwable
-            {
-                runnable.set((Runnable) invocation.getArguments()[0]);
-                return thread;
-            }
+        when(threadFactory.newThread(any())).then((Answer<Thread>) invocation -> {
+            runnable.set((Runnable) invocation.getArguments()[0]);
+            return thread;
         });
 
         when(framework.waitForStop(0)).thenReturn(stoppedUpdateEvent).thenReturn(stopEvent);
@@ -169,27 +161,14 @@ public class LauncherTest
         when(stoppedUpdateEvent.getType()).thenReturn(FrameworkEvent.STOPPED_UPDATE);
         when(stopEvent.getType()).thenReturn(ERROR);
 
-        doThrow(ThreadStartedException.class).when(thread).start();
-
-        try
-        {
-            Launcher.startFramework(framework, runtime, threadFactory);
-
-            fail("Framework thread was not started!");
-        }
-        catch (ThreadStartedException e)
-        {
+        doAnswer((Answer<Void>) invocation -> {
             runnable.get().run();
-
             verify(framework, times(2)).start();
             verify(framework, times(2)).waitForStop(0);
             verify(runtime, times(1)).exit(0);
-        }
-    }
+            return null;
+        }).when(thread).start();
 
-    private static class ThreadStartedException
-    extends RuntimeException
-    {
-
+        Launcher.startFramework(framework, runtime, threadFactory);
     }
 }
