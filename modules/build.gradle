@@ -11,7 +11,6 @@ subprojects {
         project.apply plugin: 'license'
 
         repositories {
-            mavenCentral()
             jcenter()
         }
 

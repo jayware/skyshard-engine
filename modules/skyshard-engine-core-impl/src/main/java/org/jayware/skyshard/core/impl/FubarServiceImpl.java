@@ -32,7 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-@Component(service = Fubar.class, name = "fubar", immediate = true)
+@Component(service = Fubar.class)
 public class FubarServiceImpl
 implements Fubar
 {

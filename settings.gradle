@@ -4,6 +4,10 @@ include 'skyshard-engine-launcher'
 
 include 'modules'
 
+// Application Module
+include ':modules:skyshard-engine-application-api'
+include ':modules:skyshard-engine-application-impl'
+
 // Core Module
 include ':modules:skyshard-engine-core-api'
 include ':modules:skyshard-engine-core-impl'

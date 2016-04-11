@@ -22,22 +22,13 @@
  *     You should have received a copy of the GNU Lesser General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jayware.skyshard.core.impl;
+package org.jayware.skyshard.application.api;
 
 
-import org.jayware.skyshard.core.api.Application;
-import org.jayware.skyshard.core.api.ApplicationService;
-import org.osgi.service.component.annotations.Component;
+import java.util.UUID;
 
 
-@Component(service = ApplicationService.class)
-public class ApplicationServiceImpl
-implements ApplicationService
+public interface Application
 {
-    @Override
-    public Application createApplication()
-    {
-
-        return new ApplicationImpl();
-    }
+    public UUID getId();
 }

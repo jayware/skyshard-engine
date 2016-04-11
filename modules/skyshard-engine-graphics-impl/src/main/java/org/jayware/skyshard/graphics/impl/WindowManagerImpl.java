@@ -22,10 +22,21 @@
  *     You should have received a copy of the GNU Lesser General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jayware.skyshard.core.api;
+package org.jayware.skyshard.graphics.impl;
 
 
-public interface ApplicationService
+import org.jayware.skyshard.graphics.api.Window;
+import org.jayware.skyshard.graphics.api.WindowManager;
+import org.osgi.service.component.annotations.Component;
+
+
+@Component(name = "fuabar")
+public class WindowManagerImpl
+implements WindowManager
 {
-    Application createApplication();
+    @Override
+    public Window createWindow()
+    {
+        return new Window() {};
+    }
 }

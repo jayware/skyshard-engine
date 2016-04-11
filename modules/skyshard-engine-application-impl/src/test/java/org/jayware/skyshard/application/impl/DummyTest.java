@@ -22,12 +22,18 @@
  *     You should have received a copy of the GNU Lesser General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jayware.skyshard.core.impl;
-
-import org.jayware.skyshard.core.api.Application;
+package org.jayware.skyshard.application.impl;
 
 
-class ApplicationImpl
-implements Application
+import org.testng.annotations.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+
+public class DummyTest
 {
+    @Test
+    public void test() {
+        assertThat(true).isTrue();
+    }
 }

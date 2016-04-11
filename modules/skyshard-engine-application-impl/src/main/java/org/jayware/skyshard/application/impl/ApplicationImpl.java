@@ -22,23 +22,25 @@
  *     You should have received a copy of the GNU Lesser General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jayware.skyshard.launcher.mocks;
+package org.jayware.skyshard.application.impl;
+
+import org.jayware.skyshard.application.api.Application;
+import org.osgi.service.component.annotations.Component;
+
+import java.util.UUID;
+
+import static org.osgi.service.component.annotations.ServiceScope.SINGLETON;
 
 
-import org.osgi.framework.launch.Framework;
-import org.osgi.framework.launch.FrameworkFactory;
-
-import java.util.Map;
-
-import static org.mockito.Mockito.mock;
-
-
-public class FrameworkFactoryMock
-implements FrameworkFactory
+@Component(immediate = true, scope = SINGLETON)
+public class ApplicationImpl
+implements Application
 {
+    private final UUID myId = UUID.randomUUID();
+
     @Override
-    public Framework newFramework(Map<String, String> configuration)
+    public UUID getId()
     {
-        return mock(Framework.class);
+        return myId;
     }
 }
