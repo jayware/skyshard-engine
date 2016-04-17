@@ -22,43 +22,42 @@
  *     You should have received a copy of the GNU Lesser General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jayware.skyshard.graphics.impl;
+package org.jayware.skyshard.core.impl;
 
 
-import org.jayware.skyshard.graphics.api.Window;
-import org.jayware.skyshard.graphics.api.WindowManager;
-import org.osgi.service.component.annotations.Component;
+import org.jayware.skyshard.core.api.TaskConfiguration;
+import org.jayware.skyshard.core.api.TaskConfigurationBuilder;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.jayware.skyshard.util.Preconditions.checkNotNull;
 
 
-@Component
-public class WindowManagerImpl
-implements WindowManager
+public class TaskConfigurationBuilderImpl
+implements TaskConfigurationBuilder
 {
+    private Map<String, String> myConfiguration = new HashMap<>();
+
     @Override
-    public Window createWindow()
+    public TaskConfigurationBuilder with(String name, String value)
     {
-        return new WindowImpl();
+        checkNotNull(name);
+
+        myConfiguration.put(name, value);
+        return this;
     }
 
-    private static class WindowImpl
-    implements Window
+    @Override
+    public TaskConfiguration build()
     {
-        @Override
-        public void setSize(int width, int height)
-        {
-
-        }
-
-        @Override
-        public void setPosition(int x, int y)
-        {
-
-        }
-
-        @Override
-        public void destroy()
-        {
-
-        }
+        return new TaskConfigurationImpl(new HashMap<>(myConfiguration));
     }
+
+    @Override
+    public void clear()
+    {
+        myConfiguration.clear();
+    }
+
 }

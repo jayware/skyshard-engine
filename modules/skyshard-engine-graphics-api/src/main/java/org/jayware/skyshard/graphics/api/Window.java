@@ -27,5 +27,9 @@ package org.jayware.skyshard.graphics.api;
 
 public interface Window
 {
+    void setSize(int width, int height);
 
+    void setPosition(int x, int y);
+
+    void destroy();
 }

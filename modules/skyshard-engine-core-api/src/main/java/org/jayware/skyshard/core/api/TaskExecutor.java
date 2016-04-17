@@ -22,43 +22,16 @@
  *     You should have received a copy of the GNU Lesser General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.jayware.skyshard.graphics.impl;
+package org.jayware.skyshard.core.api;
+
+import java.util.concurrent.Executor;
 
 
-import org.jayware.skyshard.graphics.api.Window;
-import org.jayware.skyshard.graphics.api.WindowManager;
-import org.osgi.service.component.annotations.Component;
-
-
-@Component
-public class WindowManagerImpl
-implements WindowManager
+public interface TaskExecutor
 {
-    @Override
-    public Window createWindow()
-    {
-        return new WindowImpl();
-    }
+    TaskResult execute(Task task, TaskConfiguration configuration);
 
-    private static class WindowImpl
-    implements Window
-    {
-        @Override
-        public void setSize(int width, int height)
-        {
+    boolean matches(TaskConfiguration configuration);
 
-        }
-
-        @Override
-        public void setPosition(int x, int y)
-        {
-
-        }
-
-        @Override
-        public void destroy()
-        {
-
-        }
-    }
+    boolean uses(Executor executor);
 }

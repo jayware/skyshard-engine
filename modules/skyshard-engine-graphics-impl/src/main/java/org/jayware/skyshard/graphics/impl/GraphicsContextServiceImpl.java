@@ -24,6 +24,11 @@
  */
 package org.jayware.skyshard.graphics.impl;
 
+import org.jayware.skyshard.core.api.Configure;
+import org.jayware.skyshard.core.api.Parameter;
+import org.jayware.skyshard.core.api.Task;
+import org.jayware.skyshard.core.api.TaskContext;
+import org.jayware.skyshard.core.api.TaskManager;
 import org.jayware.skyshard.graphics.api.GraphicsContextService;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.PointerBuffer;
@@ -125,9 +130,10 @@ import static org.lwjgl.opengl.GL30.glBindVertexArray;
 import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 import static org.lwjgl.system.MemoryUtil.NULL;
 import static org.lwjgl.system.MemoryUtil.memEncodeUTF8;
+import static org.osgi.service.component.annotations.ServiceScope.SINGLETON;
 
 
-@Component(service = GraphicsContextService.class, immediate = true)
+@Component(service = GraphicsContextService.class, scope = SINGLETON)
 public class GraphicsContextServiceImpl
 implements GraphicsContextService
 {
@@ -146,14 +152,30 @@ implements GraphicsContextService
 
     private Executor myMainExecutor;
 
+    private TaskManager myTaskManager;
+
     public GraphicsContextServiceImpl()
     {
         System.out.println();
     }
 
+    @Configure({@Parameter(name = "executor.id", value = "main")})
+    public static class InitializeGLFWTask
+    implements Task
+    {
+        @Override
+        public void execute(TaskContext context)
+        {
+
+        }
+    }
+
     @Activate
     void activate(BundleContext context)
     {
+//        final TaskConfiguration initConfig = myTaskManager.configure(new InitializeGLFWTask()).with("executor.id", "main").build();
+        myTaskManager.submit(new InitializeGLFWTask());
+
         myMainExecutor.execute(() -> {
             try
             {
@@ -512,5 +534,16 @@ implements GraphicsContextService
     public void unbindMainExecutor(Executor executor)
     {
         myMainExecutor = null;
+    }
+
+    @Reference
+    public void bindTaskManager(TaskManager taskManager)
+    {
+        myTaskManager = taskManager;
+    }
+
+    public void unbindTaskManager(TaskManager taskManager)
+    {
+        myTaskManager = null;
     }
 }

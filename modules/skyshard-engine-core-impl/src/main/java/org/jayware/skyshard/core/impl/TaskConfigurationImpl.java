@@ -24,16 +24,41 @@
  */
 package org.jayware.skyshard.core.impl;
 
+import org.jayware.skyshard.core.api.TaskConfiguration;
 
-import org.testng.annotations.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.Map;
 
 
-public class DummyTest
+public class TaskConfigurationImpl
+implements TaskConfiguration
 {
-    @Test
-    public void test() {
-        assertThat(true).isTrue();
+    private final Map<String, String> myConfiguration;
+
+    public TaskConfigurationImpl(Map<String, String> configuration)
+    {
+        myConfiguration = configuration;
+    }
+
+    @Override
+    public boolean containsProperty(String name)
+    {
+        return myConfiguration.containsKey(name);
+    }
+
+    @Override
+    public String getProperty(String name)
+    {
+        return myConfiguration.get(name);
+    }
+
+    @Override
+    public String getOrDefaultProperty(String name, String value)
+    {
+        if (myConfiguration.containsKey(name))
+        {
+            return myConfiguration.get(name);
+        }
+
+        return value;
     }
 }
