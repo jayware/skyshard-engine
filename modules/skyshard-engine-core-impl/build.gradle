@@ -3,7 +3,7 @@ apply plugin: 'osgi'
 
 dependencies {
     compile parent.project('skyshard-engine-core-api')
-    compile parent.project('skyshard-engine-util')
+    compile parent.project(':solid-utilities')
 
     compile 'org.slf4j:slf4j-api:1.7.20'
 }

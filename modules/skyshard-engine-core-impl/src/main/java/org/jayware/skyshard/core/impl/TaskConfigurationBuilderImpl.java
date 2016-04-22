@@ -31,7 +31,7 @@ import org.jayware.skyshard.core.api.TaskConfigurationBuilder;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.jayware.skyshard.util.Preconditions.checkNotNull;
+import static org.jayware.solid.utilities.Preconditions.checkNotNull;
 
 
 public class TaskConfigurationBuilderImpl

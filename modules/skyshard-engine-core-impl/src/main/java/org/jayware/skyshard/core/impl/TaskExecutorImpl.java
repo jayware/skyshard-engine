@@ -69,7 +69,7 @@ implements TaskExecutor
         return myExecutor == executor;
     }
 
-    private class TaskRunnable
+    private static class TaskRunnable
     implements Runnable, TaskResult
     {
         private final Task myTask;

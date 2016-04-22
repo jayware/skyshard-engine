@@ -38,7 +38,7 @@ import org.osgi.service.component.annotations.Reference;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.jayware.skyshard.util.Preconditions.checkNotNull;
+import static org.jayware.solid.utilities.Preconditions.checkNotNull;
 
 
 @Component
