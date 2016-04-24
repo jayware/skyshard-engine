@@ -30,26 +30,30 @@ import org.jayware.skyshard.core.api.TaskContext;
 import org.jayware.skyshard.core.api.TaskExecutor;
 import org.jayware.skyshard.core.api.TaskResult;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
+
+import static org.jayware.solid.utilities.Preconditions.checkNotNull;
 
 
 public class TaskExecutorImpl
 implements TaskExecutor
 {
     private final Executor myExecutor;
-    private final Map<String, String> myConfiguration;
+    private final TaskConfiguration myConfiguration;
 
     TaskExecutorImpl(Executor executor, Map<String, String> configuration)
     {
         myExecutor = executor;
-        myConfiguration = new HashMap<>(configuration);
+        myConfiguration = new TaskConfigurationImpl(configuration);
     }
 
     @Override
     public TaskResult execute(Task task, TaskConfiguration configuration)
     {
+        checkNotNull(task);
+        checkNotNull(configuration);
+
         final TaskRunnable taskRunnable = new TaskRunnable(task, configuration);
 
         myExecutor.execute(taskRunnable);
@@ -60,7 +64,9 @@ implements TaskExecutor
     @Override
     public boolean matches(TaskConfiguration configuration)
     {
-        return true;
+        checkNotNull(configuration);
+
+        return configuration.matches(myConfiguration);
     }
 
     @Override

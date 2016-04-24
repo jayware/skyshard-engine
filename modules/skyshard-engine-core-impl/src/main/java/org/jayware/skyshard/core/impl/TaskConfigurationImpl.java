@@ -24,19 +24,34 @@
  */
 package org.jayware.skyshard.core.impl;
 
+
 import org.jayware.skyshard.core.api.TaskConfiguration;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
+
+import static java.util.regex.Pattern.compile;
+import static org.jayware.solid.utilities.GlobUtil.toRegex;
+import static org.jayware.solid.utilities.Preconditions.checkNotNull;
 
 
 public class TaskConfigurationImpl
 implements TaskConfiguration
 {
-    private final Map<String, String> myConfiguration;
+    private final Map<String, PatternEntry> myConfiguration;
 
     public TaskConfigurationImpl(Map<String, String> configuration)
     {
-        myConfiguration = configuration;
+        myConfiguration = new HashMap<>(configuration.size());
+
+        for (Map.Entry<String, String> entry : configuration.entrySet())
+        {
+            final String key = entry.getKey();
+            final String value = entry.getValue();
+
+            myConfiguration.put(key, new PatternEntry(value));
+        }
     }
 
     @Override
@@ -48,17 +63,79 @@ implements TaskConfiguration
     @Override
     public String getProperty(String name)
     {
-        return myConfiguration.get(name);
+        checkNotNull(name);
+
+        final PatternEntry entry = myConfiguration.get(name);
+
+        if (entry != null)
+        {
+            return entry.getValue();
+        }
+
+        return null;
     }
 
     @Override
     public String getOrDefaultProperty(String name, String value)
     {
-        if (myConfiguration.containsKey(name))
+        final String result = getProperty(name);
+
+        if (result != null)
         {
-            return myConfiguration.get(name);
+            return result;
         }
 
         return value;
+    }
+
+    @Override
+    public boolean matches(TaskConfiguration other)
+    {
+        checkNotNull(other);
+
+        for (Map.Entry<String, PatternEntry> entry : myConfiguration.entrySet())
+        {
+            final String key = entry.getKey();
+            final String value = entry.getValue() != null ? entry.getValue().getValue() : null;
+
+            if (!other.matches(key, value))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    @Override
+    public boolean matches(String name, String value)
+    {
+        checkNotNull(name);
+
+        final PatternEntry entry = myConfiguration.get(name);
+
+        return entry != null && entry.matches(value);
+    }
+
+    private static class PatternEntry
+    {
+        private final String myValue;
+        private final Pattern myPatter;
+
+        public PatternEntry(String value)
+        {
+            myValue = value;
+            myPatter = compile(toRegex(value));
+        }
+
+        public String getValue()
+        {
+            return myValue;
+        }
+
+        public boolean matches(String value)
+        {
+            return myPatter.matcher(value).matches();
+        }
     }
 }

@@ -1,5 +1,6 @@
 package org.jayware.skyshard.core.impl;
 
+import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
 import org.jayware.skyshard.core.api.Task;
@@ -49,11 +50,48 @@ public class TaskExecutorImplTest
         assertThat(testee.execute(testTask, testConfiguration)).isNotNull();
     }
 
-    @Test
-    public void testMatches()
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void test_execute_Throws_IllegalArgumentException_if_no_Task_is_passed()
     throws Exception
     {
+        testee.execute(null, testConfiguration);
+    }
 
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void test_execute_Throws_IllegalArgumentException_if_no_TaskConfiguration_is_passed()
+    throws Exception
+    {
+        testee.execute(testTask, null);
+    }
+
+    @Test
+    public void test_matches_Returns_true_if_configuration_matches()
+    throws Exception
+    {
+        new Expectations()
+        {{
+            testConfiguration.matches((TaskConfiguration) any); result = true;
+        }};
+
+        assertThat(testee.matches(testConfiguration)).isTrue();
+    }
+
+    @Test
+    public void test_matches_Returns_false_if_configuration_does_not_matches()
+    throws Exception
+    {
+        new Expectations()
+        {{
+            testConfiguration.matches((TaskConfiguration) any); result = false;
+        }};
+
+        assertThat(testee.matches(testConfiguration)).isFalse();
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void test_matches_Throws_IllegalArgumentException_if_null_is_passed()
+    {
+        testee.matches(null);
     }
 
     @Test

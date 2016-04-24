@@ -32,4 +32,8 @@ public interface TaskConfiguration
     String getProperty(String name);
 
     String getOrDefaultProperty(String name, String value);
+
+    boolean matches(TaskConfiguration other);
+
+    boolean matches(String name, String value);
 }
