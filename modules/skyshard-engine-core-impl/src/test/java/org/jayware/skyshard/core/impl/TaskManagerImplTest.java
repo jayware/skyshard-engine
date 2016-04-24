@@ -49,7 +49,7 @@ public class TaskManagerImplTest
     throws Exception
     {
         testee = new TaskManagerImpl();
-        testee.bindExecutorPool(testExecutorPool);
+        testee.bindTaskExecutorPool(testExecutorPool);
     }
 
     @Test
