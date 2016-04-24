@@ -27,6 +27,7 @@ package org.jayware.skyshard.graphics.impl;
 import org.jayware.skyshard.core.api.Configure;
 import org.jayware.skyshard.core.api.Parameter;
 import org.jayware.skyshard.core.api.Task;
+import org.jayware.skyshard.core.api.TaskConfiguration;
 import org.jayware.skyshard.core.api.TaskContext;
 import org.jayware.skyshard.core.api.TaskManager;
 import org.jayware.skyshard.graphics.api.GraphicsContextService;
@@ -59,10 +60,10 @@ import java.nio.IntBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
-import java.util.concurrent.Executor;
 
 import static java.lang.Math.tan;
 import static java.lang.Math.toRadians;
+import static org.jayware.skyshard.core.api.TaskExecutor.EXECUTOR_NAME;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MAJOR;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MINOR;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
@@ -133,7 +134,7 @@ import static org.lwjgl.system.MemoryUtil.memEncodeUTF8;
 import static org.osgi.service.component.annotations.ServiceScope.SINGLETON;
 
 
-@Component(service = GraphicsContextService.class, scope = SINGLETON)
+@Component(service = GraphicsContextService.class, scope = SINGLETON, immediate = true)
 public class GraphicsContextServiceImpl
 implements GraphicsContextService
 {
@@ -150,7 +151,7 @@ implements GraphicsContextService
     private int viewMatrixUniform;
     private int modelMatrixUniform;
 
-    private Executor myMainExecutor;
+    private BundleContext myContext;
 
     private TaskManager myTaskManager;
 
@@ -160,23 +161,12 @@ implements GraphicsContextService
     }
 
     @Configure({@Parameter(name = "executor.id", value = "main")})
-    public static class InitializeGLFWTask
+    public class InitializeGLFWTask
     implements Task
     {
         @Override
         public void execute(TaskContext context)
         {
-
-        }
-    }
-
-    @Activate
-    void activate(BundleContext context)
-    {
-//        final TaskConfiguration initConfig = myTaskManager.configure(new InitializeGLFWTask()).with("executor.id", "main").build();
-        myTaskManager.submit(new InitializeGLFWTask());
-
-        myMainExecutor.execute(() -> {
             try
             {
                 init();
@@ -191,7 +181,7 @@ implements GraphicsContextService
                     debugProc.release();
                 }
 
-                context.getBundle(0).stop();
+                myContext.getBundle(0).stop();
             }
             catch (BundleException e)
             {
@@ -202,7 +192,16 @@ implements GraphicsContextService
                 glfwTerminate();
                 errorCallback.release();
             }
-        });
+        }
+    }
+
+    @Activate
+    void activate(BundleContext context)
+    {
+//        final TaskConfiguration initConfig = myTaskManager.configure(new InitializeGLFWTask()).with("executor.id", "main").build();
+        myContext = context;
+        final TaskConfiguration configuration = myTaskManager.createConfiguration().with(EXECUTOR_NAME, "main").build();
+        myTaskManager.submit(new InitializeGLFWTask(), configuration);
     }
 
     @Deactivate
@@ -523,17 +522,6 @@ implements GraphicsContextService
         result[11] = 1;
 
         return result;
-    }
-
-    @Reference(target = "(executor.name=main)")
-    public void bindMainExecutor(Executor executor)
-    {
-        myMainExecutor = executor;
-    }
-
-    public void unbindMainExecutor(Executor executor)
-    {
-        myMainExecutor = null;
     }
 
     @Reference

@@ -77,12 +77,12 @@ implements TaskManager
     }
 
     @Reference
-    void bindExecutorPool(TaskExecutorPool pool)
+    public void bindTaskExecutorPool(TaskExecutorPool pool)
     {
         myExecutorPool.set(pool);
     }
 
-    void unbindExecutorPool(TaskExecutorPool pool)
+    public void unbindTaskExecutorPool(TaskExecutorPool pool)
     {
         myExecutorPool.compareAndSet(pool, null);
     }

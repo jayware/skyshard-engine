@@ -32,6 +32,8 @@ import org.jayware.skyshard.core.api.TaskResult;
 import org.jayware.skyshard.core.api.TaskSchedulingException;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -51,15 +53,13 @@ import static org.osgi.service.component.annotations.ServiceScope.SINGLETON;
 public class TaskExecutorPoolImpl
 implements TaskExecutorPool
 {
+    private static final Logger log = LoggerFactory.getLogger(TaskExecutorPool.class);
+
     private final Set<TaskExecutor> myExecutors = new HashSet<>();
 
     private final ReadWriteLock myLock = new ReentrantReadWriteLock();
     private final Lock myReadLock = myLock.readLock();
     private final Lock myWriteLock = myLock.writeLock();
-
-    public TaskExecutorPoolImpl()
-    {
-    }
 
     @Override
     public TaskResult execute(Task task, TaskConfiguration configuration)
@@ -96,7 +96,7 @@ implements TaskExecutorPool
     }
 
     @Reference(policy = DYNAMIC, cardinality = AT_LEAST_ONE)
-    void bindExecutor(Executor executor, Map<String, ?> properties)
+    public void bindExecutor(Executor executor, Map<String, ?> properties)
     {
         final Map<String, String> executorProperties = new HashMap<>();
         for (Map.Entry<String, ?> entry : properties.entrySet())
@@ -111,7 +111,9 @@ implements TaskExecutorPool
         myWriteLock.lock();
         try
         {
-            myExecutors.add(new TaskExecutorImpl(executor, executorProperties));
+            final TaskExecutorImpl taskExecutor = new TaskExecutorImpl(executor, executorProperties);
+            myExecutors.add(taskExecutor);
+            log.debug("Executor joined pool: {}", taskExecutor);
         }
         finally
         {
@@ -119,12 +121,20 @@ implements TaskExecutorPool
         }
     }
 
-    void unbindExecutor(Executor executor)
+    public void unbindExecutor(Executor executor)
     {
         myWriteLock.lock();
         try
         {
-            myExecutors.removeIf(taskExecutor -> taskExecutor.uses(executor));
+            for (TaskExecutor taskExecutor : myExecutors)
+            {
+                if (taskExecutor.uses(executor))
+                {
+                    myExecutors.remove(taskExecutor);
+                    log.debug("Executor leaved pool: {}", taskExecutor);
+                    return;
+                }
+            }
         }
         finally
         {

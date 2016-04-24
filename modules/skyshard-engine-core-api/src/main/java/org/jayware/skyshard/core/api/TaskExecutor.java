@@ -29,10 +29,10 @@ import java.util.concurrent.Executor;
 
 public interface TaskExecutor
 {
-    String EXECUTOR_ID = "org.jayware.skyshard.core.api.TaskExecutor.id";
-    String EXECUTOR_NAME = "org.jayware.skyshard.core.api.TaskExecutor.name";
-    String EXECUTOR_GROUP = "org.jayware.skyshard.core.api.TaskExecutor.group";
-    String EXECUTOR_TYPE = "org.jayware.skyshard.core.api.TaskExecutor.type";
+    String EXECUTOR_ID = "executor.id";
+    String EXECUTOR_NAME = "executor.name";
+    String EXECUTOR_GROUP = "executor.group";
+    String EXECUTOR_TYPE = "executor.type";
 
     TaskResult execute(Task task, TaskConfiguration configuration);
 

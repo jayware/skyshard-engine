@@ -114,7 +114,39 @@ implements TaskConfiguration
 
         final PatternEntry entry = myConfiguration.get(name);
 
-        return entry != null && entry.matches(value);
+        return entry == null || entry.matches(value);
+    }
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder stringBuilder = new StringBuilder();
+
+        for (Map.Entry<String, PatternEntry> entry : myConfiguration.entrySet())
+        {
+            final PatternEntry patternEntry = entry.getValue();
+            final String key = entry.getKey();
+
+            stringBuilder.append('\"').append(key).append("\":").append('\"');
+
+            if (patternEntry == null)
+            {
+                stringBuilder.append("null");
+
+            }
+            else
+            {
+                stringBuilder.append(patternEntry.getValue());
+
+            }
+
+            stringBuilder.append("\", ");
+        }
+
+        String result = stringBuilder.toString();
+        result = result.substring(0, result.length() - 2);
+
+        return "\"TaskConfiguration\": {" + result + '}';
     }
 
     private static class PatternEntry
@@ -136,6 +168,12 @@ implements TaskConfiguration
         public boolean matches(String value)
         {
             return myPatter.matcher(value).matches();
+        }
+
+        @Override
+        public String toString()
+        {
+            return "{ value=\'" + myValue + "\', regex=\'" + myPatter + "\' }";
         }
     }
 }

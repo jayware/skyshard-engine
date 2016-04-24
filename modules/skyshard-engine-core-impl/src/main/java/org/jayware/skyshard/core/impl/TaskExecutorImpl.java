@@ -66,7 +66,7 @@ implements TaskExecutor
     {
         checkNotNull(configuration);
 
-        return configuration.matches(myConfiguration);
+        return myConfiguration.matches(configuration);
     }
 
     @Override
@@ -94,5 +94,11 @@ implements TaskExecutor
         {
             myTask.execute(myContext);
         }
+    }
+
+    @Override
+    public String toString()
+    {
+        return "\"TaskExecutor\": {" + myConfiguration + '}';
     }
 }
