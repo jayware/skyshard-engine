@@ -30,8 +30,10 @@ import org.jayware.skyshard.core.api.TaskConfiguration;
 import org.testng.annotations.Test;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jayware.skyshard.core.api.TaskExecutor.EXECUTOR_GROUP;
 import static org.jayware.skyshard.core.api.TaskExecutor.EXECUTOR_NAME;
@@ -135,11 +137,12 @@ public class TaskConfigurationImplTest
 
         new Expectations()
         {{
-            testConfiguration.matches(EXECUTOR_NAME, "main"); result = true;
-            testConfiguration.matches(EXECUTOR_GROUP, "fubar"); result = true;
+            testConfiguration.satisfies(EXECUTOR_NAME, "main"); result = true;
+            testConfiguration.satisfies(EXECUTOR_GROUP, "fubar"); result = true;
+            testConfiguration.getNames(); result = new HashSet<>(asList(EXECUTOR_NAME, EXECUTOR_GROUP));
         }};
 
-        assertThat(testee.matches(testConfiguration)).isTrue();
+        assertThat(testee.satisfies(testConfiguration)).isTrue();
     }
 
     @Test
@@ -152,7 +155,7 @@ public class TaskConfigurationImplTest
 
         testee = new TaskConfigurationImpl(configuration);
 
-        assertThat(testee.matches(EXECUTOR_NAME, "main")).isTrue();
+        assertThat(testee.satisfies(EXECUTOR_NAME, "main")).isTrue();
     }
 
     @Test
@@ -165,7 +168,7 @@ public class TaskConfigurationImplTest
 
         testee = new TaskConfigurationImpl(configuration);
 
-        assertThat(testee.matches(EXECUTOR_GROUP, "any")).isTrue();
+        assertThat(testee.satisfies(EXECUTOR_GROUP, "any")).isTrue();
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
@@ -174,6 +177,6 @@ public class TaskConfigurationImplTest
     {
         final TaskConfiguration testee = new TaskConfigurationImpl(new HashMap<>());
 
-        testee.matches(null);
+        testee.satisfies(null);
     }
 }

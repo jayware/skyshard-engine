@@ -25,6 +25,9 @@
 package org.jayware.skyshard.core.api;
 
 
+import java.util.Set;
+
+
 public interface TaskConfiguration
 {
     boolean containsProperty(String name);
@@ -33,7 +36,9 @@ public interface TaskConfiguration
 
     String getOrDefaultProperty(String name, String value);
 
-    boolean matches(TaskConfiguration other);
+    Set<String> getNames();
 
-    boolean matches(String name, String value);
+    boolean satisfies(TaskConfiguration other);
+
+    boolean satisfies(String name, String value);
 }

@@ -36,7 +36,7 @@ public interface TaskExecutor
 
     TaskResult execute(Task task, TaskConfiguration configuration);
 
-    boolean matches(TaskConfiguration configuration);
+    boolean satisfies(TaskConfiguration configuration);
 
     boolean uses(Executor executor);
 }

@@ -29,6 +29,7 @@ import org.jayware.skyshard.core.api.TaskConfiguration;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import static java.util.regex.Pattern.compile;
@@ -89,16 +90,31 @@ implements TaskConfiguration
     }
 
     @Override
-    public boolean matches(TaskConfiguration other)
+    public Set<String> getNames()
+    {
+        return myConfiguration.keySet();
+    }
+
+    @Override
+    public boolean satisfies(TaskConfiguration other)
     {
         checkNotNull(other);
 
-        for (Map.Entry<String, PatternEntry> entry : myConfiguration.entrySet())
+        for (String name : other.getNames())
         {
-            final String key = entry.getKey();
-            final String value = entry.getValue() != null ? entry.getValue().getValue() : null;
+            final PatternEntry entry = myConfiguration.get(name);
+            final String value;
 
-            if (!other.matches(key, value))
+            if (entry != null)
+            {
+                value = entry.getValue();
+            }
+            else
+            {
+                value = null;
+            }
+
+            if (!other.satisfies(name, value))
             {
                 return false;
             }
@@ -108,7 +124,7 @@ implements TaskConfiguration
     }
 
     @Override
-    public boolean matches(String name, String value)
+    public boolean satisfies(String name, String value)
     {
         checkNotNull(name);
 

@@ -62,11 +62,11 @@ implements TaskExecutor
     }
 
     @Override
-    public boolean matches(TaskConfiguration configuration)
+    public boolean satisfies(TaskConfiguration configuration)
     {
         checkNotNull(configuration);
 
-        return myConfiguration.matches(configuration);
+        return myConfiguration.satisfies(configuration);
     }
 
     @Override

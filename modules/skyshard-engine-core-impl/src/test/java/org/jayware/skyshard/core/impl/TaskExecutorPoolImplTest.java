@@ -35,6 +35,7 @@ import org.jayware.skyshard.core.api.TaskExecutor;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.util.HashMap;
 import java.util.concurrent.Executor;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,10 +63,10 @@ public class TaskExecutorPoolImplTest
     {
         new Expectations()
         {{
-            testTaskExecutor.matches(testConfiguration); result = true;
+            testTaskExecutor.satisfies(testConfiguration); result = true;
         }};
 
-        testee.bindExecutor(testExecutor, null);
+        testee.bindExecutor(testExecutor, new HashMap<>());
 
         testee.execute(testTask, testConfiguration);
 
@@ -91,11 +92,11 @@ public class TaskExecutorPoolImplTest
     public void test_findTaskExecutor_Returns_not_null_if_a_matching_TaskExecutor_is_available()
     throws Exception
     {
-        testee.bindExecutor(testExecutor, null);
+        testee.bindExecutor(testExecutor, new HashMap<>());
 
         new Expectations()
         {{
-            testTaskExecutor.matches(testConfiguration); result = true;
+            testTaskExecutor.satisfies(testConfiguration); result = true;
         }};
 
         assertThat(testee.findTaskExecutor(testConfiguration)).isNotNull();

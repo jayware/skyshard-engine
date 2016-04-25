@@ -32,9 +32,13 @@ import org.jayware.skyshard.core.api.TaskConfiguration;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executor;
 
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 
@@ -89,33 +93,44 @@ public class TaskExecutorImplTest
     }
 
     @Test
-    public void test_matches_Returns_true_if_configuration_matches()
+    public void test_satisfies_Returns_true_if_configuration_matches()
     throws Exception
     {
+        final Set<String> names = new HashSet<>(asList("foo", "bar"));
+        final Map<String, String> configuration = new HashMap<>();
+        configuration.put("foo", "foo");
+        configuration.put("bar", "foo");
+
         new Expectations()
         {{
-            testConfiguration.matches((TaskConfiguration) any); result = true;
+            testConfiguration.satisfies((String) any, (String) any); result = true;
+            testConfiguration.getNames(); result = names;
         }};
 
-        assertThat(testee.matches(testConfiguration)).isTrue();
+        testee = new TaskExecutorImpl(testExecutor, configuration);
+
+        assertThat(testee.satisfies(testConfiguration)).isTrue();
     }
 
     @Test
-    public void test_matches_Returns_false_if_configuration_does_not_matches()
+    public void test_satisfies_Returns_false_if_configuration_does_not_matches()
     throws Exception
     {
+        final Set<String> names = new HashSet<>(asList("foo", "bar"));
+
         new Expectations()
         {{
-            testConfiguration.matches((TaskConfiguration) any); result = false;
+            testConfiguration.satisfies((String) any, (String) any); result = false;
+            testConfiguration.getNames(); result = names;
         }};
 
-        assertThat(testee.matches(testConfiguration)).isFalse();
+        assertThat(testee.satisfies(testConfiguration)).isFalse();
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
-    public void test_matches_Throws_IllegalArgumentException_if_null_is_passed()
+    public void test_satisfies_Throws_IllegalArgumentException_if_null_is_passed()
     {
-        testee.matches(null);
+        testee.satisfies(null);
     }
 
     @Test

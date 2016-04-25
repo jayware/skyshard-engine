@@ -86,7 +86,7 @@ implements TaskExecutorPool
     {
         for (TaskExecutor executor : myExecutors)
         {
-            if (executor.matches(configuration))
+            if (executor.satisfies(configuration))
             {
                 return executor;
             }
